@@ -110,17 +110,17 @@ void ball_speed_adder() {
 
 // if collision happen, return true
 namespace collision {
-	bool startline(Point* ball) {
-		return BOARD_STARTLINE > ball[0].y - MAIN_BALL_RADIUS;
+	bool startline(Point* ball_coor) {
+		return BOARD_STARTLINE > ball_coor[0].y - MAIN_BALL_RADIUS;
 	}
-	bool top(Point* ball) {
-		return BOARD_TOP < ball[0].y + MAIN_BALL_RADIUS;
+	bool top(Point* ball_coor) {
+		return BOARD_TOP < ball_coor[0].y + MAIN_BALL_RADIUS;
 	}
-	bool left(Point* ball) {
-		return BOARD_LEFT > ball[0].x - MAIN_BALL_RADIUS;
+	bool left(Point* ball_coor) {
+		return BOARD_LEFT > ball_coor[0].x - MAIN_BALL_RADIUS;
 	}
-	bool right(Point* ball) {
-		return BOARD_RIGHT < ball[0].x + MAIN_BALL_RADIUS;
+	bool right(Point* ball_coor) {
+		return BOARD_RIGHT < ball_coor[0].x + MAIN_BALL_RADIUS;
 	}
 }
 
@@ -135,6 +135,9 @@ void ball_collision() {
 	// �¿�
 	if (collision::left(ball) || collision::right(ball)) {
 		ball_v.x *= -1;
+		if (ball_v.y > 0) {
+			ball_v.y = ball_v.y + 0.3 > 0.6 ? 0.6 : ball_v.y + 0.3;
+		}
 	}
 }
 
@@ -197,6 +200,34 @@ void MySpecial(int key, int x, int y) {
 	keyboard_ball_control(key);
 }
 
+<<<<<<< Updated upstream
+=======
+void MyMouse(int button, int state, int x, int y) {
+	// 클릭 하면 drag 시작
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+		drag = true;
+		mouse[0] = { (float)x, BOARD_TOP - (float)y };
+	}
+	// 클릭 때면 drag 끝내기
+	else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
+		float threshold = 0.2;
+		drag = false;
+		Point mouse_velo = ball[0] - mouse[0];
+		mouse_velo = multiply(mouse_velo,0.01,0.015);
+		mouse_velo.x = mouse_velo.x > threshold ? threshold : 
+			-threshold < mouse_velo.x? mouse_velo.x : -threshold;	// x속도 제안하기
+		go(mouse_velo);
+	}
+}
+
+void MyMotion(int x, int y) {
+	if (drag) {
+		mouse[0] = { (float)x, BOARD_TOP - (float)y };
+		//printf("mouse[0] %.0lf : %.0lf\n", mouse[0].x, mouse[0].y);
+	}
+}
+
+>>>>>>> Stashed changes
 void RenderScene(void) {
 	glClearColor(0.8, 0.8, 0.8, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -209,5 +240,6 @@ void RenderScene(void) {
 	poly_circle(MAIN_BALL_RADIUS, RED);
 	axis();
 
+	std::cout << ball_v.x << " : " << ball_v.y << "\n";
 	glFlush();
 }
