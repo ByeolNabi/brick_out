@@ -14,7 +14,7 @@
 #define BOARD_STARTLINE	50 - MAIN_BALL_RADIUS
 
 #define	PI		3.1415926
-#define GRAVITY_ACC	-0.0005
+#define GRAVITY_ACC	-0.001
 
 #define RED 0
 #define GREEN 1
@@ -256,12 +256,8 @@ void MyMouse(int button, int state, int x, int y) {
 	}
 	// 클릭 때면 drag 끝내기
 	else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
-		float threshold = 0.2;
 		drag = false;
-		Point mouse_velo = ball[0] - mouse[0];
-		mouse_velo = multiply(mouse_velo,0.01,0.015);
-		mouse_velo.x = mouse_velo.x > threshold ? threshold : 
-			-threshold < mouse_velo.x? mouse_velo.x : -threshold;	// x속도 제안하기
+		Point mouse_velo = multiply(ball[0] - mouse[0],0.01,0.025);
 		go(mouse_velo);
 	}
 }
