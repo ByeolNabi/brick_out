@@ -14,7 +14,7 @@
 #define BOARD_STARTLINE	50 - MAIN_BALL_RADIUS
 
 #define	PI		3.1415926
-#define GRAVITY_ACC	-0.0005
+#define GRAVITY_ACC	-0.001
 
 #define RED 0
 #define GREEN 1
@@ -29,16 +29,23 @@ struct Point {
 	GLfloat y;
 };
 
-// ÃÊ±â °øÀÇ ¼Óµµ Á¤ÀÇÇÏ±â
-Point ball_v = { 0, 0.01 };
-// °¡¼Óµµ °ø½Ä
-Point gravity_a = { 0, GRAVITY_ACC };
-// °øÀÇ ÁÂÇ¥
-Point ball[1] = { 100, 400 };
-// ¸¶¿ì½º ÁÂÇ¥
-Point mouse[1] = {};
+// Point operate funcs
+Point operator+(const Point a, const Point b);
+Point operator-(const Point a, const Point b);
+Point operator/(const Point a, double b);
+Point operator/(double b, const Point a);
+Point operator*(const Point a, double b);
+Point operator*(double b, const Point a);
+Point multiply(const Point target, float mul_x, float mul_y);
 
-// »ö µ¥ÀÌÅÍ
+Point ball_v = { 0, 0.01 };	// ì´ˆê¸° ê³µì˜ ì†ë„ ì •ì˜í•˜ê¸°
+Point gravity_a = { 0, GRAVITY_ACC }; // ê°€ì†ë„ ê³µì‹
+Point ball[1] = { 100, 400 };	// ê³µì˜ ì¢Œí‘œ
+Point mouse[1] = {0,0};	// ë§ˆìš°ìŠ¤ ì¢Œí‘œ
+
+bool drag = false;	// ê·¸ë¦¬ê¸° ì‹œìž‘ : true, ê·¸ë¦¬ê¸° ì¢…ë£Œ : false
+
+// ìƒ‰ ë°ì´í„°
 GLfloat colors[][3] = {
 	{ 1.0, 0.0, 0.0 },	//red
 	{ 0.0, 1.0, 0.0 },	//green
@@ -54,7 +61,7 @@ void Init() {
 }
 
 // physics
-void go();
+void go(Point velocity);
 void stop();
 void ball_speed_adder();
 // if collision happen, return true
@@ -73,6 +80,8 @@ void axis();
 // callback func
 void keyboard_ball_control(int key);
 void MySpecial(int key, int x, int y);
+void MyMouse(int button, int state, int x, int y);
+void MyMotion(int x, int y);
 
 // display result
 void RenderScene(void);
@@ -87,11 +96,52 @@ void main(int argc, char** argv) {
 	glutDisplayFunc(RenderScene);
 	glutIdleFunc(RenderScene);
 	glutSpecialFunc(MySpecial);
+	glutMouseFunc(MyMouse);
+	glutMotionFunc(MyMotion);
 	glutMainLoop();
 }
 
-void go() {
+// Point operate funcs
+Point operator+(const Point a, const Point b) {
+	Point c;
+	c.x = a.x + b.x;
+	c.y = a.y + b.y;
+	return c;
+}
+Point operator-(const Point a, const Point b) {
+	Point c;
+	c.x = a.x - b.x;
+	c.y = a.y - b.y;
+	return c;
+}
+Point operator/(const Point a, double b) {
+	Point c;
+	c.x = a.x / b;
+	c.y = a.y / b;
+	return c;
+}
+Point operator/(double b, const Point a) {
+	return a / b;
+}
+Point operator*(const Point a, double b) {
+	Point c;
+	c.x = a.x * b;
+	c.y = a.y * b;
+	return c;
+}
+Point operator*(double b, const Point a) {
+	return a * b;
+}
+Point multiply(const Point target, float mul_x, float mul_y) {
+	Point result;
+	result = { target.x * mul_x, target.y * mul_y };
+	return result;
+}
 
+
+void go(Point velocity) {
+	gravity_a = { 0,GRAVITY_ACC };
+	ball_v = ball_v + velocity;
 }
 void stop() {
 	ball_v = { 0,0 };
@@ -100,10 +150,10 @@ void stop() {
 }
 
 void ball_speed_adder() {
-	// x°ü·Ã
-	ball_v.x += gravity_a.x;	// °¡¼Óµµ¸¸Å­ ¼Óµµ Áõ°¡
-	ball[0].x += ball_v.x;	// ¼Óµµ¸¸Å­ À§Ä¡ ÀÌµ¿
-	// y°ü·Ã
+	// xê´€ë ¨
+	ball_v.x += gravity_a.x;	// ê°€ì†ë„ë§Œí¼ ì†ë„ ì¦ê°€
+	ball[0].x += ball_v.x;	// ì†ë„ë§Œí¼ ìœ„ì¹˜ ì´ë™
+	// yê´€ë ¨
 	ball_v.y += gravity_a.y;
 	ball[0].y += ball_v.y;
 }
@@ -125,14 +175,14 @@ namespace collision {
 }
 
 void ball_collision() {
-	// »óÇÏ
+	// ìƒí•˜
 	if (collision::startline(ball)) {
 		stop();
 	}
 	if (collision::top(ball)) {
 		ball_v.y *= -1;
 	}
-	// ÁÂ¿ì
+	// ì¢Œìš°
 	if (collision::left(ball) || collision::right(ball)) {
 		ball_v.x *= -1;
 		if (ball_v.y > 0) {
@@ -176,7 +226,7 @@ void axis() {
 
 void keyboard_ball_control(int key) {
 	switch (key) {
-		// ÁÂ, ¿ì
+		// ì¢Œ, ìš°
 	case GLUT_KEY_LEFT:
 		//gravity_a.x -= 0.0001;
 		ball_v.x -= 0.01;
@@ -189,7 +239,7 @@ void keyboard_ball_control(int key) {
 		//ball[0].x += 10;
 		//std::cout << "right\n";
 		break;
-		// À§, ¾Æ·¡
+		// ìœ„, ì•„ëž˜
 	case GLUT_KEY_DOWN:  break;
 	case GLUT_KEY_UP:  break;
 	default: break;
@@ -200,8 +250,7 @@ void MySpecial(int key, int x, int y) {
 	keyboard_ball_control(key);
 }
 
-<<<<<<< Updated upstream
-=======
+
 void MyMouse(int button, int state, int x, int y) {
 	// í´ë¦­ í•˜ë©´ drag ì‹œìž‘
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
@@ -215,7 +264,9 @@ void MyMouse(int button, int state, int x, int y) {
 		Point mouse_velo = ball[0] - mouse[0];
 		mouse_velo = multiply(mouse_velo,0.01,0.015);
 		mouse_velo.x = mouse_velo.x > threshold ? threshold : 
-			-threshold < mouse_velo.x? mouse_velo.x : -threshold;	// xì†ë„ ì œì•ˆí•˜ê¸°
+			-threshold < mouse_velo.x? mouse_velo.x : -threshold;	// xì†ë„ ì œí•œí•˜ê¸°
+		drag = false;
+		Point mouse_velo = multiply(ball[0] - mouse[0],0.01,0.025);
 		go(mouse_velo);
 	}
 }
@@ -227,7 +278,6 @@ void MyMotion(int x, int y) {
 	}
 }
 
->>>>>>> Stashed changes
 void RenderScene(void) {
 	glClearColor(0.8, 0.8, 0.8, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
