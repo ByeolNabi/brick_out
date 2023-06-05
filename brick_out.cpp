@@ -5,8 +5,9 @@
 #include <iostream>
 #include <vector>
 #include <string>
+using namespace std;
 
-#define	CIRCLE_EDGE_NUM 20
+#define	CIRCLE_EDGE_NUM 30
 #define MAIN_BALL_RADIUS 10
 
 #define BOARD_LEFT		0
@@ -28,13 +29,11 @@
 #define BLUE 3
 #define WHITE 4
 #define MAGENTA 5
-using namespace std;
 
 struct Point {
 	GLfloat x = 0;
 	GLfloat y = 0;
 };
-
 struct CollisionObj {
 	Point coor;
 	bool collsion;
@@ -156,7 +155,7 @@ float operator*(const Point a, const Point b) {
 	c += a.y * b.y;
 	return c;
 }
-std::ostream& operator << (std::ostream& out, const Point& point){
+std::ostream& operator << (std::ostream& out, const Point& point) {
 	out << "( " << point.x << ", " << point.y << " )";
 	return out;
 }
@@ -173,15 +172,24 @@ float dot(const vector<float>& vec1, const vector<float>& vec2) {
 	return dot;
 }
 Point seg_contact(Point start, Point end, double t1, double t2) {
-	// 충돌시에 공의 원점과 가장 가까운 점을 구하는 함수
-	Point sol1 = start + (t1 * (end - start));
-	Point sol2 = start + (t2 * (end - start));
-	//cout << t1 << " : " << t2 << '\n';
-	Point sol = (sol1 + sol2) / 2;
+	Point sol;
+	if (t1 <= 0 || t1 >= 1) {	// t1은 충돌이 아니라면
+		sol = start + (t2 * (end - start));
+	}
+	else if (t2 <= 0 || t2 >= 1) {	// t2ㄴ은 충돌이 아니라면
+		sol = start + (t1 * (end - start));
+	}
+	else {
+		// 충돌시에 공의 원점과 가장 가까운 점을 구하는 함수
+		Point sol1 = start + (t1 * (end - start));
+		Point sol2 = start + (t2 * (end - start));
+		//cout << t1 << " : " << t2 << '\n';
+		sol = (sol1 + sol2) / 2;
+	}
 	return sol;
 }
 double norm(Point vec) {
-	return sqrt(vec.x*vec.x + vec.y * vec.y);
+	return sqrt(vec.x * vec.x + vec.y * vec.y);
 }
 
 
@@ -227,7 +235,7 @@ namespace collision {
 		//std::cout << dsc << '\n';
 
 		// 직선과 출동하는지 확인
-		if (dsc<=0) {
+		if (dsc <= 0) {
 			return false;
 		}
 		// 직선과 충돌한다면 선분과 출동하는지 확인
@@ -289,7 +297,21 @@ void poly_circle_board(double radius, int x, int y) {
 	glBegin(GL_LINE_LOOP);
 	double delta = 2 * PI / CIRCLE_EDGE_NUM;
 	for (int i = 0; i < CIRCLE_EDGE_NUM; ++i) {
-		glVertex2f(r * cos(delta * i) + x, r * sin(delta * i) + y);
+		Point start = { r * cos(delta * i) + x, r * sin(delta * i) + y };
+		Point end = { r * cos(delta * (i + 1)) + x, r * sin(delta * (i + 1)) + y };
+		glVertex2f(start.x, start.y);
+		glVertex2f(end.x, end.y);
+
+		if (collision::line(ball, start, end)) {
+			Point _nearest = seg_contact(start, end, t1, t2);
+			collision_vec = ball[0] - _nearest;
+			//cout << nearest << '\n';
+			collision_vec = collision_vec / norm(collision_vec);	// 정규화된 법선 벡터
+			float normal_size = -(collision_vec * ball_v);	// 법선벡터 방향으로 곱해줄 벡터의 크기
+			//cout << ball[0] << " : " << collision_vec << " : " << normal_size << "\n";
+			Point normal_vec = collision_vec * normal_size * 2;	// 법선벡터 방향으로 더해줄 벡터
+			ball_v = ball_v + normal_vec;
+		}
 	}
 	glEnd();
 }
@@ -410,11 +432,11 @@ void RenderScene(void) {
 
 	// value edit
 	ball_speed_adder();
-	ball_collision();
+	//ball_collision();
 
 	// draw
 	poly_circle(MAIN_BALL_RADIUS, ball[0].x, ball[0].y);
-	//poly_circle_board(BOARD_TOP < BOARD_RIGHT ? BOARD_TOP / 2 - 30 : BOARD_RIGHT / 2 - 30, BOARD_RIGHT / 2, BOARD_TOP / 2);
+	poly_circle_board(BOARD_TOP < BOARD_RIGHT ? BOARD_TOP / 2 - 30 : BOARD_RIGHT / 2 - 30, BOARD_RIGHT / 2, BOARD_TOP / 2);
 	//poly_brick();
 	print_ball_info();
 	axis();
@@ -425,8 +447,6 @@ void RenderScene(void) {
 	glVertex2f(100, 200);
 	glVertex2f(300, 400);
 	glEnd();
-
-	print_info(collision_vec);
 
 	if (collision::line(ball, start, end)) {
 		nearest = seg_contact(start, end, t1, t2);

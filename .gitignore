@@ -1,0 +1,15 @@
+﻿################################################################################
+# 이 .gitignore 파일은 Microsoft(R) Visual Studio에서 자동으로 만들어졌습니다.
+################################################################################
+
+/.vs/brick_out/FileContentIndex/23b1e9e5-b288-4f83-87af-dc99e16dca37.vsidx
+/.vs/brick_out/FileContentIndex/14c1cec2-55b4-462f-adf9-f24f96a95e07.vsidx
+/.vs/brick_out/v17/.suo
+/x64/Debug/vc143.pdb
+/x64/Debug/vc143.idb
+/x64/Debug/brick_out.pdb
+/x64/Debug/brick_out.obj
+/x64/Debug/brick_out.log
+/x64/Debug/brick_out.ilk
+/x64/Debug/brick_out.exe
+/.gitignore
