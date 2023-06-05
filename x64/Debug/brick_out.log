@@ -1,0 +1,24 @@
+﻿  brick_out.cpp
+D:\Users\lemon\Projects\VisualStudio\brick_out\brick_out.cpp(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
+D:\Users\lemon\Projects\VisualStudio\brick_out\brick_out.cpp(52,36): warning C4305: '초기화 중': 'double'에서 'GLfloat'(으)로 잘립니다.
+D:\Users\lemon\Projects\VisualStudio\brick_out\brick_out.cpp(110,34): warning C4326: 'main'의 반환 형식이 'int'이어야 하는데 'void'입니다.
+D:\Users\lemon\Projects\VisualStudio\brick_out\brick_out.cpp(140,12): warning C4244: '=': 'double'에서 'GLfloat'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+D:\Users\lemon\Projects\VisualStudio\brick_out\brick_out.cpp(141,12): warning C4244: '=': 'double'에서 'GLfloat'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+D:\Users\lemon\Projects\VisualStudio\brick_out\brick_out.cpp(146,12): warning C4244: '=': 'double'에서 'GLfloat'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+D:\Users\lemon\Projects\VisualStudio\brick_out\brick_out.cpp(147,12): warning C4244: '=': 'double'에서 'GLfloat'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+D:\Users\lemon\Projects\VisualStudio\brick_out\brick_out.cpp(189,30): warning C4305: '초기화 중': 'double'에서 'GLfloat'(으)로 잘립니다.
+D:\Users\lemon\Projects\VisualStudio\brick_out\brick_out.cpp(280,57): warning C4244: '인수': 'double'에서 'GLfloat'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+D:\Users\lemon\Projects\VisualStudio\brick_out\brick_out.cpp(280,33): warning C4244: '인수': 'double'에서 'GLfloat'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+D:\Users\lemon\Projects\VisualStudio\brick_out\brick_out.cpp(292,57): warning C4244: '인수': 'double'에서 'GLfloat'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+D:\Users\lemon\Projects\VisualStudio\brick_out\brick_out.cpp(292,33): warning C4244: '인수': 'double'에서 'GLfloat'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+D:\Users\lemon\Projects\VisualStudio\brick_out\brick_out.cpp(298,25): warning C4305: '인수': 'double'에서 'GLfloat'(으)로 잘립니다.
+D:\Users\lemon\Projects\VisualStudio\brick_out\brick_out.cpp(322,19): warning C4244: '인수': 'int'에서 'GLfloat'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+D:\Users\lemon\Projects\VisualStudio\brick_out\brick_out.cpp(323,18): warning C4244: '인수': 'int'에서 'GLfloat'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+D:\Users\lemon\Projects\VisualStudio\brick_out\brick_out.cpp(353,19): warning C4305: '-=': 'double'에서 'GLfloat'(으)로 잘립니다.
+D:\Users\lemon\Projects\VisualStudio\brick_out\brick_out.cpp(359,19): warning C4305: '+=': 'double'에서 'GLfloat'(으)로 잘립니다.
+D:\Users\lemon\Projects\VisualStudio\brick_out\brick_out.cpp(383,24): warning C4305: '초기화 중': 'double'에서 'float'(으)로 잘립니다.
+D:\Users\lemon\Projects\VisualStudio\brick_out\brick_out.cpp(386,47): warning C4305: '인수': 'double'에서 'float'(으)로 잘립니다.
+D:\Users\lemon\Projects\VisualStudio\brick_out\brick_out.cpp(408,31): warning C4305: '인수': 'double'에서 'GLclampf'(으)로 잘립니다.
+D:\Users\lemon\Projects\VisualStudio\brick_out\brick_out.cpp(416,50): warning C4244: '인수': 'GLfloat'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+D:\Users\lemon\Projects\VisualStudio\brick_out\brick_out.cpp(416,39): warning C4244: '인수': 'GLfloat'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  brick_out.vcxproj -> D:\Users\lemon\Projects\VisualStudio\brick_out\x64\Debug\brick_out.exe
