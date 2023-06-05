@@ -257,6 +257,20 @@ namespace collision {
 	}
 }
 
+namespace react {
+	void line(Point* ball, Point start, Point end) {
+		if (collision::line(ball, start, end)) {
+			Point _nearest = seg_contact(start, end, t1, t2);
+			collision_vec = ball[0] - _nearest;
+			//cout << nearest << '\n';
+			collision_vec = collision_vec / norm(collision_vec);	// 정규화된 법선 벡터
+			float normal_size = -(collision_vec * ball_v);	// 법선벡터 방향으로 곱해줄 벡터의 크기
+			//cout << ball[0] << " : " << collision_vec << " : " << normal_size << "\n";
+			Point normal_vec = collision_vec * normal_size * 2;	// 법선벡터 방향으로 더해줄 벡터
+			ball_v = ball_v + normal_vec;
+		}
+	}
+}
 
 void ball_collision() {
 	// 상하
@@ -301,17 +315,17 @@ void poly_circle_board(double radius, int x, int y) {
 		Point end = { r * cos(delta * (i + 1)) + x, r * sin(delta * (i + 1)) + y };
 		glVertex2f(start.x, start.y);
 		glVertex2f(end.x, end.y);
-
-		if (collision::line(ball, start, end)) {
-			Point _nearest = seg_contact(start, end, t1, t2);
-			collision_vec = ball[0] - _nearest;
-			//cout << nearest << '\n';
-			collision_vec = collision_vec / norm(collision_vec);	// 정규화된 법선 벡터
-			float normal_size = -(collision_vec * ball_v);	// 법선벡터 방향으로 곱해줄 벡터의 크기
-			//cout << ball[0] << " : " << collision_vec << " : " << normal_size << "\n";
-			Point normal_vec = collision_vec * normal_size * 2;	// 법선벡터 방향으로 더해줄 벡터
-			ball_v = ball_v + normal_vec;
-		}
+		react::line(ball, start, end);
+		//if (collision::line(ball, start, end)) {
+		//	Point _nearest = seg_contact(start, end, t1, t2);
+		//	collision_vec = ball[0] - _nearest;
+		//	//cout << nearest << '\n';
+		//	collision_vec = collision_vec / norm(collision_vec);	// 정규화된 법선 벡터
+		//	float normal_size = -(collision_vec * ball_v);	// 법선벡터 방향으로 곱해줄 벡터의 크기
+		//	//cout << ball[0] << " : " << collision_vec << " : " << normal_size << "\n";
+		//	Point normal_vec = collision_vec * normal_size * 2;	// 법선벡터 방향으로 더해줄 벡터
+		//	ball_v = ball_v + normal_vec;
+		//}
 	}
 	glEnd();
 }
@@ -437,27 +451,29 @@ void RenderScene(void) {
 	// draw
 	poly_circle(MAIN_BALL_RADIUS, ball[0].x, ball[0].y);
 	poly_circle_board(BOARD_TOP < BOARD_RIGHT ? BOARD_TOP / 2 - 30 : BOARD_RIGHT / 2 - 30, BOARD_RIGHT / 2, BOARD_TOP / 2);
-	//poly_brick();
+	poly_brick();
 	print_ball_info();
 	axis();
 
 	Point start = { 100, 200 };
 	Point end = { 300, 400 };
-	glBegin(GL_LINES);	//x
-	glVertex2f(100, 200);
-	glVertex2f(300, 400);
+	glBegin(GL_LINES);
+	glVertex2f(start.x, start.y);
+	glVertex2f(end.x, end.y);
 	glEnd();
 
-	if (collision::line(ball, start, end)) {
-		nearest = seg_contact(start, end, t1, t2);
-		collision_vec = ball[0] - nearest;
-		//cout << nearest << '\n';
-		collision_vec = collision_vec / norm(collision_vec);	// 정규화된 법선 벡터
-		float normal_size = -(collision_vec * ball_v);	// 법선벡터 방향으로 곱해줄 벡터의 크기
-		//cout << ball[0] << " : " << collision_vec << " : " << normal_size << "\n";
-		Point normal_vec = collision_vec * normal_size * 2;	// 법선벡터 방향으로 더해줄 벡터
-		ball_v = ball_v + normal_vec;
-	}
+	react::line(ball, start, end);
+
+	//if (collision::line(ball, start, end)) {
+	//	nearest = seg_contact(start, end, t1, t2);
+	//	collision_vec = ball[0] - nearest;
+	//	//cout << nearest << '\n';
+	//	collision_vec = collision_vec / norm(collision_vec);	// 정규화된 법선 벡터
+	//	float normal_size = -(collision_vec * ball_v);	// 법선벡터 방향으로 곱해줄 벡터의 크기
+	//	//cout << ball[0] << " : " << collision_vec << " : " << normal_size << "\n";
+	//	Point normal_vec = collision_vec * normal_size * 2;	// 법선벡터 방향으로 더해줄 벡터
+	//	ball_v = ball_v + normal_vec;
+	//}
 
 	glFlush();
 }
