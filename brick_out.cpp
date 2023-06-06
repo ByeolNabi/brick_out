@@ -89,7 +89,6 @@ namespace collision {
 	bool right(Point* ball);
 	bool line(Point* ball, Point start, Point end);
 }
-void ball_collision();
 
 // draw
 void poly_circle(double radius, int x, int y); // 동그라미 그리는 함수
@@ -98,6 +97,7 @@ void poly_brick(CollisionObj);
 void axis();
 void print_ball_info();
 void print_info(Point p);
+void print(string txt, int num, int x, int y);
 
 // callback func
 void keyboard_ball_control(int key);
@@ -202,7 +202,7 @@ void go(Point velocity) {
 void stop() {
 	ball_v = { 0,0 };
 	gravity_a = { 0, 0 };
-	ball[0].y = BOARD_STARTLINE + MAIN_BALL_RADIUS + 1;
+	ball[0].y = BOARD_STARTLINE + MAIN_BALL_RADIUS + 10;
 }
 
 void ball_speed_adder() {
@@ -276,25 +276,6 @@ namespace react {
 	}
 }
 
-void ball_collision() {
-	// 상하
-	if (collision::startline(ball)) {
-		stop();
-	}
-	if (collision::top(ball)) {
-		ball_v.y *= -1;
-	}
-	// 좌우
-	if (collision::left(ball) || collision::right(ball)) {
-		ball_v.x *= -1;
-		/*if (ball_v.y > 0) {
-			std::cout << ball_v.x << " : " << ball_v.y << "\n";
-			ball_v.y = ball_v.y + 0.4.0f > 0.9 ? 0.9 : ball_v.y + 0.4;
-			std::cout << ball_v.x << " : " << ball_v.y << "\n";
-		}*/
-	}
-}
-
 // draw
 void poly_circle(double radius, int x, int y) {
 	glColor3f(1, 0, 0);
@@ -309,19 +290,45 @@ void poly_circle(double radius, int x, int y) {
 }
 
 void poly_circle_board(double radius, int x, int y) {
+	Point bottom_start;
+	Point bottom_end;
+	// 동그라미
 	glColor3f(0, 0, 0);
-
 	double r = radius;
-	glBegin(GL_LINE_LOOP);
+	glBegin(GL_LINES);
 	double delta = 2 * PI / CIRCLE_EDGE_NUM;
 	for (int i = 0; i < CIRCLE_EDGE_NUM; ++i) {
 		Point start = { r * cos(delta * i) + x, r * sin(delta * i) + y };
 		Point end = { r * cos(delta * (i + 1)) + x, r * sin(delta * (i + 1)) + y };
+		if (i >= 19 && i <= 25) {
+			if (i == 19) bottom_start = start;
+			if (i == 25) bottom_end = end;
+			continue;
+		}
+		/*if (i == 0) glColor3f(1, 1, 1);	//원 그리는 방향 확인을 위한 코드
+		else if (i == 2) glColor3f(1, 1, 1);
+		else glColor3f(0, 0, 0);*/
 		glVertex2f(start.x, start.y);
 		glVertex2f(end.x, end.y);
 		react::line(ball, start, end);
 	}
 	glEnd();
+	// 바닥 네모
+	glBegin(GL_LINES);
+	glVertex2f(bottom_start.x, bottom_start.y);
+	glVertex2f(bottom_start.x, BOARD_STARTLINE);
+	react::line(ball, bottom_start, { bottom_start.x, BOARD_STARTLINE });
+	glVertex2f(bottom_start.x, BOARD_STARTLINE);
+	glVertex2f(bottom_end.x, BOARD_STARTLINE);
+	if (collision::line(ball, { bottom_start.x, BOARD_STARTLINE }, { bottom_end.x, BOARD_STARTLINE })) {
+		stop();
+	}
+	glVertex2f(bottom_end.x, BOARD_STARTLINE);
+	glVertex2f(bottom_end.x, bottom_end.y);
+	react::line(ball, { bottom_end.x, BOARD_STARTLINE }, bottom_end);
+	glEnd();
+
+
 }
 
 void poly_brick() {
@@ -341,15 +348,15 @@ void poly_brick() {
 				brick[i].collsion = true;
 				brick_remain--;
 			}
-			else if (react::line(ball, { float(b1), float(b2) }, { float(c1), float(c2) })){
+			else if (react::line(ball, { float(b1), float(b2) }, { float(c1), float(c2) })) {
 				brick[i].collsion = true;
 				brick_remain--;
 			}
-			else if (react::line(ball, { float(c1), float(c2) }, { float(d1), float(d2) })){
+			else if (react::line(ball, { float(c1), float(c2) }, { float(d1), float(d2) })) {
 				brick[i].collsion = true;
 				brick_remain--;
 			}
-			else if (react::line(ball, { float(d1), float(d2) }, { float(a1), float(a2) })){
+			else if (react::line(ball, { float(d1), float(d2) }, { float(a1), float(a2) })) {
 				brick[i].collsion = true;
 				brick_remain--;
 			}
@@ -395,7 +402,7 @@ void print_info(Point p) {
 		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, c);
 	}
 }
-void print(string txt, int num ,int x, int y) {
+void print(string txt, int num, int x, int y) {
 	glColor3f(0, 0, 0);
 	glRasterPos2f(x, y);
 	string variableStr = txt + to_string(num);
@@ -470,7 +477,6 @@ void RenderScene(void) {
 
 	// value edit
 	ball_speed_adder();
-	ball_collision();
 
 	// draw
 	poly_circle(MAIN_BALL_RADIUS, ball[0].x, ball[0].y);
@@ -480,8 +486,6 @@ void RenderScene(void) {
 	print("bricks : ", brick_remain, 10, 50);
 	print("try score : ", try_score, 10, 60);
 	axis();
-
-	printf("%d\n", brick_remain);
 
 	glFlush();
 }
