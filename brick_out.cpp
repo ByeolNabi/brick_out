@@ -48,6 +48,7 @@ int brick_remain = BRICK_NUMS;
 int try_score = 0;
 int game_mode = 0; // 0 : 게임 시작 전, 1 : 게임 중, 3: 게임 클리어
 int menu_toggle = 0;
+int click_toggle = 0;
 
 Point ball_v = { 0, 0 };	// 초기 공의 속도 정의하기
 Point gravity_a = { 0, GRAVITY_ACC }; // 가속도 공식
@@ -209,6 +210,9 @@ void stop() {
 	ball[0].y = BOARD_STARTLINE + MAIN_BALL_RADIUS;
 	if (brick_remain == 0) {
 		game_mode = 2;
+	}
+	if (click_toggle == 1) {
+		click_toggle = 0;
 	}
 }
 
@@ -440,11 +444,11 @@ void keyboard_ball_control(int key) {
 void MyKeyboard(unsigned char key, int x, int y) {
 	if (key == 13) {
 		if (game_mode == 0) {
-			if (menu_toggle%2 == 0) {
+			if (menu_toggle % 2 == 0) {
 				game_mode = 1;
 				menu_toggle = 0;
 			}
-			else if (menu_toggle%2 == 1) {
+			else if (menu_toggle % 2 == 1) {
 				exit(0);
 			}
 		}
@@ -460,26 +464,29 @@ void MySpecial(int key, int x, int y) {
 }
 
 void MyMouse(int button, int state, int x, int y) {
-	// 클릭 하면 drag 시작
-	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-		drag = true;
-		mouse[0] = { (float)x, BOARD_TOP - (float)y };
-	}
-	// 클릭 때면 drag 끝내기
-	else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
-		float threshold = 0.2;
-		drag = false;
-		Point mouse_velo = ball[0] - mouse[0];
-		mouse_velo = multiply(mouse_velo, 0.01, 0.02);
-		mouse_velo.x = mouse_velo.x > threshold ? threshold :
-			-threshold < mouse_velo.x ? mouse_velo.x : -threshold; // x속도 제한하기
-		drag = false;
-		try_score++;
-		go(mouse_velo);
-	}
-	else if (button == GLUT_RIGHT_BUTTON && state == GLUT_UP) {
-		ball[0].x = (float)x;
-		ball[0].y = BOARD_TOP - (float)y;
+	if (click_toggle == 0) {
+		// 클릭 하면 drag 시작
+		if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+			drag = true;
+			mouse[0] = { (float)x, BOARD_TOP - (float)y };
+		}
+		// 클릭 때면 drag 끝내기
+		else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
+			float threshold = 0.2;
+			drag = false;
+			Point mouse_velo = ball[0] - mouse[0];
+			mouse_velo = multiply(mouse_velo, 0.01, 0.02);
+			mouse_velo.x = mouse_velo.x > threshold ? threshold :
+				-threshold < mouse_velo.x ? mouse_velo.x : -threshold; // x속도 제한하기
+			drag = false;
+			try_score++;
+			go(mouse_velo);
+			click_toggle++;
+		}
+		else if (button == GLUT_RIGHT_BUTTON && state == GLUT_UP) {
+			ball[0].x = (float)x;
+			ball[0].y = BOARD_TOP - (float)y;
+		}
 	}
 }
 
@@ -498,10 +505,10 @@ void RenderScene(void) {
 		glClear(GL_COLOR_BUFFER_BIT);
 		glColor3f(0, 0, 0);
 		print_string("Break Out", 230, 500, GLUT_BITMAP_TIMES_ROMAN_24);
-		if (menu_toggle%2 == 0) glColor3f(1, 0, 0);
+		if (menu_toggle % 2 == 0) glColor3f(1, 0, 0);
 		else glColor3f(0, 0, 0);
 		print_string("start", 260, 230, GLUT_BITMAP_TIMES_ROMAN_24);
-		if (menu_toggle%2 == 1) glColor3f(1, 0, 0);
+		if (menu_toggle % 2 == 1) glColor3f(1, 0, 0);
 		else glColor3f(0, 0, 0);
 		print_string("exit", 262, 200, GLUT_BITMAP_TIMES_ROMAN_24);
 		glFlush();
@@ -533,4 +540,4 @@ void RenderScene(void) {
 		print_string("press enter to exit", 200, 200, GLUT_BITMAP_TIMES_ROMAN_24);
 		glFlush();
 	}
-} 
+}
