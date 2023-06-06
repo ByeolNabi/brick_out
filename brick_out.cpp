@@ -18,7 +18,9 @@ using namespace std;
 
 #define BRICK_WIDTH	30
 #define BRICK_HEIGHT 8
-#define BRICK_NUM 9
+#define BRICK_ROW 3
+#define BRICK_COL 4
+#define BRICK_NUMS BRICK_ROW * BRICK_COL
 
 #define	PI		3.1415926
 #define GRAVITY_ACC	-0.001
@@ -38,14 +40,12 @@ struct CollisionObj {
 	Point coor;
 	bool collsion;
 };
-CollisionObj brick[9] = {
-				{100,500,0},{200,500,0},{300,500,0} ,
-				{100,400,0},{200,400,0},{300,400,0} ,
-				{100,300,0},{200,300,0},{300,300,0}
-};
+CollisionObj brick[20];
 
 double t1, t2;
 bool drag = false;	// 그리기 시작 : true, 그리기 종료 : false
+int brick_remain = BRICK_NUMS;
+int try_score = 0;
 
 Point ball_v = { 0, 0 };	// 초기 공의 속도 정의하기
 Point gravity_a = { 0, GRAVITY_ACC }; // 가속도 공식
@@ -65,12 +65,15 @@ Point multiply(const Point target, float mul_x, float mul_y);
 Point seg_contact(Point start, Point end, double t1, double t2);
 double norm(Point vec);
 
-
-
-
 //==================func==================//
 void Init() {
 	gluOrtho2D(0, BOARD_RIGHT, 0, BOARD_TOP);
+	for (int row = 0; row < BRICK_ROW; row++) {
+		for (int col = 0; col < BRICK_COL; col++) {
+			brick[row * BRICK_COL + col].coor = { 150.0f + col * 100, 450.0f - row * 80 };
+			brick[row * BRICK_COL + col].collsion = false;
+		}
+	}
 }
 
 // physics
@@ -192,7 +195,6 @@ double norm(Point vec) {
 	return sqrt(vec.x * vec.x + vec.y * vec.y);
 }
 
-
 void go(Point velocity) {
 	gravity_a = { 0,GRAVITY_ACC };
 	ball_v = ball_v + velocity;
@@ -258,7 +260,7 @@ namespace collision {
 }
 
 namespace react {
-	void line(Point* ball, Point start, Point end) {
+	bool line(Point* ball, Point start, Point end) {
 		if (collision::line(ball, start, end)) {
 			Point _nearest = seg_contact(start, end, t1, t2);
 			collision_vec = ball[0] - _nearest;
@@ -268,7 +270,9 @@ namespace react {
 			//cout << ball[0] << " : " << collision_vec << " : " << normal_size << "\n";
 			Point normal_vec = collision_vec * normal_size * 2;	// 법선벡터 방향으로 더해줄 벡터
 			ball_v = ball_v + normal_vec;
+			return true;
 		}
+		else return false;
 	}
 }
 
@@ -316,35 +320,47 @@ void poly_circle_board(double radius, int x, int y) {
 		glVertex2f(start.x, start.y);
 		glVertex2f(end.x, end.y);
 		react::line(ball, start, end);
-		//if (collision::line(ball, start, end)) {
-		//	Point _nearest = seg_contact(start, end, t1, t2);
-		//	collision_vec = ball[0] - _nearest;
-		//	//cout << nearest << '\n';
-		//	collision_vec = collision_vec / norm(collision_vec);	// 정규화된 법선 벡터
-		//	float normal_size = -(collision_vec * ball_v);	// 법선벡터 방향으로 곱해줄 벡터의 크기
-		//	//cout << ball[0] << " : " << collision_vec << " : " << normal_size << "\n";
-		//	Point normal_vec = collision_vec * normal_size * 2;	// 법선벡터 방향으로 더해줄 벡터
-		//	ball_v = ball_v + normal_vec;
-		//}
 	}
 	glEnd();
 }
 
 void poly_brick() {
 	glColor3f(0.5, 0.3, 0.1);
-	for (int i = 0; i < BRICK_NUM; ++i) {
-		glBegin(GL_POLYGON);
-		glVertex2f(brick[i].coor.x - BRICK_WIDTH, brick[i].coor.y + BRICK_HEIGHT);
-		glVertex2f(brick[i].coor.x - BRICK_WIDTH, brick[i].coor.y - BRICK_HEIGHT);
-		glVertex2f(brick[i].coor.x + BRICK_WIDTH, brick[i].coor.y - BRICK_HEIGHT);
-		glVertex2f(brick[i].coor.x + BRICK_WIDTH, brick[i].coor.y + BRICK_HEIGHT);
-		glEnd();
+	for (int i = 0; i < BRICK_COL * BRICK_ROW; ++i) {
+		if (brick[i].collsion == false) {
+			glBegin(GL_POLYGON);
+			int a1 = brick[i].coor.x - BRICK_WIDTH, a2 = brick[i].coor.y + BRICK_HEIGHT;
+			int b1 = brick[i].coor.x - BRICK_WIDTH, b2 = brick[i].coor.y - BRICK_HEIGHT;
+			int c1 = brick[i].coor.x + BRICK_WIDTH, c2 = brick[i].coor.y - BRICK_HEIGHT;
+			int d1 = brick[i].coor.x + BRICK_WIDTH, d2 = brick[i].coor.y + BRICK_HEIGHT;
+			glVertex2f(a1, a2);
+			glVertex2f(b1, b2);
+			glVertex2f(c1, c2);
+			glVertex2f(d1, d2);
+			if (react::line(ball, { float(a1), float(a2) }, { float(b1), float(b2) })) {
+				brick[i].collsion = true;
+				brick_remain--;
+			}
+			else if (react::line(ball, { float(b1), float(b2) }, { float(c1), float(c2) })){
+				brick[i].collsion = true;
+				brick_remain--;
+			}
+			else if (react::line(ball, { float(c1), float(c2) }, { float(d1), float(d2) })){
+				brick[i].collsion = true;
+				brick_remain--;
+			}
+			else if (react::line(ball, { float(d1), float(d2) }, { float(a1), float(a2) })){
+				brick[i].collsion = true;
+				brick_remain--;
+			}
+			glEnd();
+		}
 	}
 }
 
 void axis() {
-	glColor3f(0, 0, 1);
-	glBegin(GL_LINES);	//x
+	glColor3f(0, 0, 1);	//x
+	glBegin(GL_LINES);
 	glVertex2f(0, 0);
 	glVertex2f(BOARD_RIGHT, 0);
 	glEnd();
@@ -379,6 +395,14 @@ void print_info(Point p) {
 		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, c);
 	}
 }
+void print(string txt, int num ,int x, int y) {
+	glColor3f(0, 0, 0);
+	glRasterPos2f(x, y);
+	string variableStr = txt + to_string(num);
+	for (char c : variableStr) {
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, c);
+	}
+}
 
 // event
 void keyboard_ball_control(int key) {
@@ -407,7 +431,6 @@ void MySpecial(int key, int x, int y) {
 	keyboard_ball_control(key);
 }
 
-
 void MyMouse(int button, int state, int x, int y) {
 	// 클릭 하면 drag 시작
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
@@ -423,6 +446,7 @@ void MyMouse(int button, int state, int x, int y) {
 		//mouse_velo.x = mouse_velo.x > threshold ? threshold :
 		//	-threshold < mouse_velo.x ? mouse_velo.x : -threshold; // x속도 제한하기
 		drag = false;
+		try_score++;
 		go(mouse_velo);
 	}
 	else if (button == GLUT_RIGHT_BUTTON && state == GLUT_UP) {
@@ -446,34 +470,18 @@ void RenderScene(void) {
 
 	// value edit
 	ball_speed_adder();
-	//ball_collision();
+	ball_collision();
 
 	// draw
 	poly_circle(MAIN_BALL_RADIUS, ball[0].x, ball[0].y);
 	poly_circle_board(BOARD_TOP < BOARD_RIGHT ? BOARD_TOP / 2 - 30 : BOARD_RIGHT / 2 - 30, BOARD_RIGHT / 2, BOARD_TOP / 2);
 	poly_brick();
-	print_ball_info();
+	//print_ball_info();
+	print("bricks : ", brick_remain, 10, 50);
+	print("try score : ", try_score, 10, 60);
 	axis();
 
-	Point start = { 100, 200 };
-	Point end = { 300, 400 };
-	glBegin(GL_LINES);
-	glVertex2f(start.x, start.y);
-	glVertex2f(end.x, end.y);
-	glEnd();
-
-	react::line(ball, start, end);
-
-	//if (collision::line(ball, start, end)) {
-	//	nearest = seg_contact(start, end, t1, t2);
-	//	collision_vec = ball[0] - nearest;
-	//	//cout << nearest << '\n';
-	//	collision_vec = collision_vec / norm(collision_vec);	// 정규화된 법선 벡터
-	//	float normal_size = -(collision_vec * ball_v);	// 법선벡터 방향으로 곱해줄 벡터의 크기
-	//	//cout << ball[0] << " : " << collision_vec << " : " << normal_size << "\n";
-	//	Point normal_vec = collision_vec * normal_size * 2;	// 법선벡터 방향으로 더해줄 벡터
-	//	ball_v = ball_v + normal_vec;
-	//}
+	printf("%d\n", brick_remain);
 
 	glFlush();
 }
