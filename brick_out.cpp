@@ -18,7 +18,7 @@ using namespace std;
 
 #define BRICK_WIDTH	30
 #define BRICK_HEIGHT 8
-#define BRICK_ROW 3
+#define BRICK_ROW 5
 #define BRICK_COL 4
 #define BRICK_NUMS BRICK_ROW * BRICK_COL
 
@@ -46,6 +46,8 @@ double t1, t2;
 bool drag = false;	// 그리기 시작 : true, 그리기 종료 : false
 int brick_remain = BRICK_NUMS;
 int try_score = 0;
+int game_mode = 0; // 0 : 게임 시작 전, 1 : 게임 중, 3: 게임 클리어
+int menu_toggle = 0;
 
 Point ball_v = { 0, 0 };	// 초기 공의 속도 정의하기
 Point gravity_a = { 0, GRAVITY_ACC }; // 가속도 공식
@@ -70,7 +72,7 @@ void Init() {
 	gluOrtho2D(0, BOARD_RIGHT, 0, BOARD_TOP);
 	for (int row = 0; row < BRICK_ROW; row++) {
 		for (int col = 0; col < BRICK_COL; col++) {
-			brick[row * BRICK_COL + col].coor = { 150.0f + col * 100, 450.0f - row * 80 };
+			brick[row * BRICK_COL + col].coor = { 200.0f + col * 70, 400.0f - row * 40 };
 			brick[row * BRICK_COL + col].collsion = false;
 		}
 	}
@@ -97,13 +99,14 @@ void poly_brick(CollisionObj);
 void axis();
 void print_ball_info();
 void print_info(Point p);
-void print(string txt, int num, int x, int y);
+void print(string txt, int num, int x, int y, void* font);
 
 // callback func
 void keyboard_ball_control(int key);
 void MySpecial(int key, int x, int y);
 void MyMouse(int button, int state, int x, int y);
 void MyMotion(int x, int y);
+void MyKeyboard(unsigned char key, int x, int y);
 
 // display result
 void RenderScene(void);
@@ -119,6 +122,7 @@ void main(int argc, char** argv) {
 	glutDisplayFunc(RenderScene);
 	glutIdleFunc(RenderScene);
 	glutSpecialFunc(MySpecial);
+	glutKeyboardFunc(MyKeyboard);
 	glutMouseFunc(MyMouse);
 	glutMotionFunc(MyMotion);
 	glutMainLoop();
@@ -179,7 +183,7 @@ Point seg_contact(Point start, Point end, double t1, double t2) {
 	if (t1 <= 0 || t1 >= 1) {	// t1은 충돌이 아니라면
 		sol = start + (t2 * (end - start));
 	}
-	else if (t2 <= 0 || t2 >= 1) {	// t2ㄴ은 충돌이 아니라면
+	else if (t2 <= 0 || t2 >= 1) {	// t2은 충돌이 아니라면
 		sol = start + (t1 * (end - start));
 	}
 	else {
@@ -202,7 +206,10 @@ void go(Point velocity) {
 void stop() {
 	ball_v = { 0,0 };
 	gravity_a = { 0, 0 };
-	ball[0].y = BOARD_STARTLINE + MAIN_BALL_RADIUS + 10;
+	ball[0].y = BOARD_STARTLINE + MAIN_BALL_RADIUS;
+	if (brick_remain == 0) {
+		game_mode = 2;
+	}
 }
 
 void ball_speed_adder() {
@@ -320,7 +327,7 @@ void poly_circle_board(double radius, int x, int y) {
 	react::line(ball, bottom_start, { bottom_start.x, BOARD_STARTLINE });
 	glVertex2f(bottom_start.x, BOARD_STARTLINE);
 	glVertex2f(bottom_end.x, BOARD_STARTLINE);
-	if (collision::line(ball, { bottom_start.x, BOARD_STARTLINE }, { bottom_end.x, BOARD_STARTLINE })) {
+	if (collision::line(ball, { bottom_start.x, BOARD_STARTLINE - 10 }, { bottom_end.x, BOARD_STARTLINE - 10 })) {
 		stop();
 	}
 	glVertex2f(bottom_end.x, BOARD_STARTLINE);
@@ -402,36 +409,50 @@ void print_info(Point p) {
 		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, c);
 	}
 }
-void print(string txt, int num, int x, int y) {
+void print(string txt, int num, int x, int y, void* font = GLUT_BITMAP_HELVETICA_12) {
 	glColor3f(0, 0, 0);
 	glRasterPos2f(x, y);
 	string variableStr = txt + to_string(num);
 	for (char c : variableStr) {
-		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, c);
+		glutBitmapCharacter(font, c);
+	}
+}
+void print_string(string txt, int x, int y, void* font) {
+	glRasterPos2f(x, y);
+	string variableStr = txt;
+	for (char c : variableStr) {
+		glutBitmapCharacter(font, c);
 	}
 }
 
 // event
 void keyboard_ball_control(int key) {
 	switch (key) {
-		// 좌, 우
-	case GLUT_KEY_LEFT:
-		//gravity_a.x -= 0.0001;
-		ball_v.x -= 0.01;
-		//ball[0].x -= 10;
-		//std::cout << "left\n";
+	case GLUT_KEY_UP:
+		menu_toggle++;
 		break;
-	case GLUT_KEY_RIGHT:
-		//gravity_a.x += 0.0001;
-		ball_v.x += 0.01;
-		//ball[0].x += 10;
-		//std::cout << "right\n";
+	case GLUT_KEY_DOWN:
+		menu_toggle++;
 		break;
-		// 위, 아래
-	case GLUT_KEY_DOWN:  break;
-	case GLUT_KEY_UP:  break;
 	default: break;
 	}
+}
+void MyKeyboard(unsigned char key, int x, int y) {
+	if (key == 13) {
+		if (game_mode == 0) {
+			if (menu_toggle%2 == 0) {
+				game_mode = 1;
+				menu_toggle = 0;
+			}
+			else if (menu_toggle%2 == 1) {
+				exit(0);
+			}
+		}
+		if (game_mode == 2) {
+			exit(0);
+		}
+	}
+
 }
 
 void MySpecial(int key, int x, int y) {
@@ -450,8 +471,8 @@ void MyMouse(int button, int state, int x, int y) {
 		drag = false;
 		Point mouse_velo = ball[0] - mouse[0];
 		mouse_velo = multiply(mouse_velo, 0.01, 0.02);
-		//mouse_velo.x = mouse_velo.x > threshold ? threshold :
-		//	-threshold < mouse_velo.x ? mouse_velo.x : -threshold; // x속도 제한하기
+		mouse_velo.x = mouse_velo.x > threshold ? threshold :
+			-threshold < mouse_velo.x ? mouse_velo.x : -threshold; // x속도 제한하기
 		drag = false;
 		try_score++;
 		go(mouse_velo);
@@ -472,20 +493,44 @@ void MyMotion(int x, int y) {
 Point nearest;
 //======================================================//
 void RenderScene(void) {
-	glClearColor(0.8, 0.8, 0.8, 0);
-	glClear(GL_COLOR_BUFFER_BIT);
+	if (game_mode == 0) {
+		glClearColor(0.8, 0.8, 0.8, 0);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glColor3f(0, 0, 0);
+		print_string("Break Out", 230, 500, GLUT_BITMAP_TIMES_ROMAN_24);
+		if (menu_toggle%2 == 0) glColor3f(1, 0, 0);
+		else glColor3f(0, 0, 0);
+		print_string("start", 260, 230, GLUT_BITMAP_TIMES_ROMAN_24);
+		if (menu_toggle%2 == 1) glColor3f(1, 0, 0);
+		else glColor3f(0, 0, 0);
+		print_string("exit", 262, 200, GLUT_BITMAP_TIMES_ROMAN_24);
+		glFlush();
+	}
+	else if (game_mode == 1) {
+		glClearColor(0.8, 0.8, 0.8, 0);
+		glClear(GL_COLOR_BUFFER_BIT);
 
-	// value edit
-	ball_speed_adder();
+		// value edit
+		ball_speed_adder();
 
-	// draw
-	poly_circle(MAIN_BALL_RADIUS, ball[0].x, ball[0].y);
-	poly_circle_board(BOARD_TOP < BOARD_RIGHT ? BOARD_TOP / 2 - 30 : BOARD_RIGHT / 2 - 30, BOARD_RIGHT / 2, BOARD_TOP / 2);
-	poly_brick();
-	//print_ball_info();
-	print("bricks : ", brick_remain, 10, 50);
-	print("try score : ", try_score, 10, 60);
-	axis();
+		// draw
+		poly_circle(MAIN_BALL_RADIUS, ball[0].x, ball[0].y);
+		poly_circle_board(BOARD_TOP < BOARD_RIGHT ? BOARD_TOP / 2 - 30 : BOARD_RIGHT / 2 - 30, BOARD_RIGHT / 2, BOARD_TOP / 2);
+		poly_brick();
+		//print_ball_info();
+		print("bricks : ", brick_remain, 10, 50);
+		print("try score : ", try_score, 10, 60);
+		axis();
 
-	glFlush();
-}
+		glFlush();
+	}
+	// 게임 클리어
+	else if (game_mode == 2) {
+		glClearColor(0.8, 0.8, 0.8, 0);
+		glClear(GL_COLOR_BUFFER_BIT);
+		print_string("GAME CLEAR", 220, 500, GLUT_BITMAP_TIMES_ROMAN_24);
+		print("click score : ", try_score, 220, 400, GLUT_BITMAP_TIMES_ROMAN_24);
+		print_string("press enter to exit", 200, 200, GLUT_BITMAP_TIMES_ROMAN_24);
+		glFlush();
+	}
+} 
