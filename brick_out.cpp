@@ -464,7 +464,7 @@ void MySpecial(int key, int x, int y) {
 }
 
 void MyMouse(int button, int state, int x, int y) {
-	if (click_toggle == 0) {
+	if (click_toggle == 0 && game_mode == 1) {
 		// 클릭 하면 drag 시작
 		if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
 			drag = true;
