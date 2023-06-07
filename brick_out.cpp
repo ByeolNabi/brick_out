@@ -290,7 +290,6 @@ namespace react {
 // draw
 void poly_circle(double radius, int x, int y) {
 	glColor3f(1, 0, 0);
-
 	double r = radius;
 	glBegin(GL_POLYGON);
 	double delta = 2 * PI / CIRCLE_EDGE_NUM;
@@ -374,6 +373,17 @@ void poly_brick() {
 			glEnd();
 		}
 	}
+}
+void poly_obstacle() {
+	glColor3f(1, 0, 0);
+	glBegin(GL_LINES);
+	glVertex2f(30, 300);
+	glVertex2f(80, 280);
+	glVertex2f(520, 280);
+	glVertex2f(570, 300);
+	glEnd();
+	react::line(ball, { 30, 300 }, { 80,280 });
+	react::line(ball, { 520,280 }, { 570,300 });
 }
 
 void axis() {
@@ -486,6 +496,7 @@ void MyMouse(int button, int state, int x, int y) {
 		else if (button == GLUT_RIGHT_BUTTON && state == GLUT_UP) {
 			ball[0].x = (float)x;
 			ball[0].y = BOARD_TOP - (float)y;
+			cout << ball[0].x << " : " << ball[0].y << '\n';
 		}
 	}
 }
@@ -524,6 +535,8 @@ void RenderScene(void) {
 		poly_circle(MAIN_BALL_RADIUS, ball[0].x, ball[0].y);
 		poly_circle_board(BOARD_TOP < BOARD_RIGHT ? BOARD_TOP / 2 - 30 : BOARD_RIGHT / 2 - 30, BOARD_RIGHT / 2, BOARD_TOP / 2);
 		poly_brick();
+		//poly_obstacle();
+
 		//print_ball_info();
 		print("bricks : ", brick_remain, 10, 50);
 		print("try score : ", try_score, 10, 60);
