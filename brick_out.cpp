@@ -118,7 +118,7 @@ void main(int argc, char** argv) {
 	glutInitWindowPosition(100, 100);
 	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
 	glutInitWindowSize(BOARD_RIGHT, BOARD_TOP);
-	glutCreateWindow("Bouncing Yeah");
+	glutCreateWindow("Brick out");
 	Init();
 	glutDisplayFunc(RenderScene);
 	glutIdleFunc(RenderScene);
@@ -244,7 +244,7 @@ namespace collision {
 		float a = (B - A) * (B - A);
 		float b = 2.0f * ((B - A) * (A - C[0]));
 		float c = (A - C[0]) * (A - C[0]) - radius * radius;
-		float dsc = (b * b) - (4.0f * a * c);
+		float dsc = (b * b) - (4.0f * a * c);	// 판별식
 		//std::cout << dsc << '\n';
 
 		// 직선과 출동하는지 확인
@@ -482,7 +482,7 @@ void MyMouse(int button, int state, int x, int y) {
 		}
 		// 클릭 때면 drag 끝내기
 		else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
-			float threshold = 0.2;
+			float threshold = 0.4;
 			drag = false;
 			Point mouse_velo = ball[0] - mouse[0];
 			mouse_velo = multiply(mouse_velo, 0.01, 0.02);
