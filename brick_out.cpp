@@ -96,6 +96,7 @@ namespace collision {
 // draw
 void poly_circle(double radius, int x, int y); // 동그라미 그리는 함수
 void poly_circle_board(double radius, int x, int y);
+void poly_circle_board101(double radius, int x, int y);
 void poly_brick(CollisionObj);
 void axis();
 void print_ball_info();
@@ -337,8 +338,44 @@ void poly_circle_board(double radius, int x, int y) {
 	glVertex2f(bottom_end.x, bottom_end.y);
 	react::line(ball, { bottom_end.x, BOARD_STARTLINE }, bottom_end);
 	glEnd();
+}
 
-
+void poly_circle_board101(double radius, int x, int y) {
+	Point bottom_start;
+	Point bottom_end;
+	// 동그라미
+	glColor3f(0, 0, 0);
+	double r = radius;
+	glBegin(GL_LINES);
+	double delta = 2 * PI / CIRCLE_EDGE_NUM;
+	for (int i = 0; i < CIRCLE_EDGE_NUM; ++i) {
+		Point start = { r * cos(delta * i) + x, r * sin(delta * i) + y };
+		Point end = { r * cos(delta * (i + 1)) + x, r * sin(delta * (i + 1)) + y };
+		if (i >= 19 && i <= 25) {
+			if (i == 19) bottom_start = start;
+			if (i == 25) bottom_end = end;
+			continue;
+		}
+		/*if (i == 0) glColor3f(1, 1, 1);	//원 그리는 방향 확인을 위한 코드
+		else if (i == 2) glColor3f(1, 1, 1);
+		else glColor3f(0, 0, 0);*/
+		glVertex2f(start.x, start.y);
+		glVertex2f(end.x, end.y);
+		react::line(ball, start, end);
+	}
+	glEnd();
+	// 바닥 네모
+	glBegin(GL_LINES);
+	glVertex2f(bottom_start.x, bottom_start.y);
+	glVertex2f(bottom_start.x, BOARD_STARTLINE);
+	react::line(ball, bottom_start, { bottom_start.x, BOARD_STARTLINE });
+	glVertex2f(bottom_start.x, BOARD_STARTLINE);
+	glVertex2f(bottom_end.x, BOARD_STARTLINE);
+	react::line(ball, { bottom_start.x, BOARD_STARTLINE - 10 }, { bottom_end.x, BOARD_STARTLINE - 10 });
+	glVertex2f(bottom_end.x, BOARD_STARTLINE);
+	glVertex2f(bottom_end.x, bottom_end.y);
+	react::line(ball, { bottom_end.x, BOARD_STARTLINE }, bottom_end);
+	glEnd();
 }
 
 void poly_brick() {
@@ -377,13 +414,22 @@ void poly_brick() {
 void poly_obstacle() {
 	glColor3f(1, 0, 0);
 	glBegin(GL_LINES);
-	glVertex2f(30, 300);
-	glVertex2f(80, 280);
-	glVertex2f(520, 280);
-	glVertex2f(570, 300);
+	glVertex2f(30, 200);
+	glVertex2f(250, 400);
+	react::line(ball, { 30, 200 }, { 250,400 });
 	glEnd();
-	react::line(ball, { 30, 300 }, { 80,280 });
-	react::line(ball, { 520,280 }, { 570,300 });
+
+	glBegin(GL_POLYGON);
+	glVertex2f(400, 400);
+	glVertex2f(500, 400);
+	glVertex2f(500, 300);
+	glVertex2f(400, 300);
+	react::line(ball, { 400, 400 }, { 500, 400});
+	react::line(ball, { 500, 400 }, { 500, 300 });
+	react::line(ball, { 500, 300 }, { 400, 300 });
+	react::line(ball, { 400, 300 }, { 400, 400 });
+
+	glEnd();
 }
 
 void axis() {
@@ -466,6 +512,11 @@ void MyKeyboard(unsigned char key, int x, int y) {
 			exit(0);
 		}
 	}
+	else if (key == 'p') {
+		if (game_mode == 0) {
+			game_mode = 101;
+		}
+	}
 
 }
 
@@ -474,7 +525,7 @@ void MySpecial(int key, int x, int y) {
 }
 
 void MyMouse(int button, int state, int x, int y) {
-	if (click_toggle == 0 && game_mode == 1) {
+	if (click_toggle == 0 && (game_mode == 1 || game_mode == 101)) {
 		// 클릭 하면 drag 시작
 		if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
 			drag = true;
@@ -496,7 +547,10 @@ void MyMouse(int button, int state, int x, int y) {
 		else if (button == GLUT_RIGHT_BUTTON && state == GLUT_UP) {
 			ball[0].x = (float)x;
 			ball[0].y = BOARD_TOP - (float)y;
-			cout << ball[0].x << " : " << ball[0].y << '\n';
+			ball_v = { 0,0 };
+			gravity_a = { 0, -0.0005 };
+			cout << ball[0] << '\n';
+			cout << ball_v.x << " : " << ball_v.y << '\n';
 		}
 	}
 }
@@ -551,6 +605,22 @@ void RenderScene(void) {
 		print_string("GAME CLEAR", 220, 500, GLUT_BITMAP_TIMES_ROMAN_24);
 		print("click score : ", try_score, 220, 400, GLUT_BITMAP_TIMES_ROMAN_24);
 		print_string("press enter to exit", 200, 200, GLUT_BITMAP_TIMES_ROMAN_24);
+		glFlush();
+	}
+	// 시연 모드
+	else if (game_mode == 101) {
+		glClearColor(0.8, 0.8, 0.8, 0);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		// value edit
+		ball_speed_adder();
+
+		// draw
+		poly_circle(MAIN_BALL_RADIUS, ball[0].x, ball[0].y);
+		poly_circle_board101(BOARD_TOP < BOARD_RIGHT ? BOARD_TOP / 2 - 30 : BOARD_RIGHT / 2 - 30, BOARD_RIGHT / 2, BOARD_TOP / 2);
+
+		poly_obstacle();
+
 		glFlush();
 	}
 }
