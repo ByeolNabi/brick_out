@@ -5,4 +5,4 @@ Visual Studio에서 nupenGL.core을 이용한 openGL프로젝트
 
 https://www.youtube.com/watch?v=lUTWN8uDW4g&t=85s
 
-![Screen-Recording-2025-01-13-at-10 43 41 AM-_online-video-cutter com_](https://github.com/user-attachments/assets/f6e2b7c3-434a-4f61-9d8c-09ae1fadcb84)
+![ezgif-2-b6cc20839f](https://github.com/user-attachments/assets/b9f9e60c-890b-4f88-b6e6-155fea728c9c)
